@@ -1,0 +1,17 @@
+{
+  "registry": {
+    "name": "MCP Registry Demo",
+    "version": "1.0",
+    "servers": [
+      {
+        "id": "demo-server-1",
+        "name": "Demo MCP Server",
+        "description": "A demonstration MCP server for testing the registry protocol",
+        "endpoints": {
+          "discover": "https://example.com/mcp/discover",
+          "invoke": "https://example.com/mcp/invoke"
+        }
+      }
+    ]
+  }
+}
