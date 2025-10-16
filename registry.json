@@ -1,17 +1,26 @@
 {
-  "registry": {
-    "name": "MCP Registry Demo",
-    "version": "1.0",
-    "servers": [
-      {
-        "id": "demo-server-1",
-        "name": "Demo MCP Server",
-        "description": "A demonstration MCP server for testing the registry protocol",
-        "endpoints": {
-          "discover": "https://example.com/mcp/discover",
-          "invoke": "https://example.com/mcp/invoke"
-        }
-      }
-    ]
-  }
+  "servers": [
+    {
+      "id": "github",
+      "name": "GitHub MCP Server",
+      "description": "Tools and resources for GitHub repos, issues, PRs, and Actions.",
+      "manifest_url": "https://registry.yourcompany.com/servers/github/manifest.json",
+      "categories": ["code", "devops", "github"],
+      "version": "1.0.0",
+      "release_date": "2025-09-01T00:00:00Z",
+      "latest": true
+    },
+    {
+      "id": "local-linter",
+      "name": "Local Linter",
+      "description": "Runs lint checks against local files",
+      "manifest_url": "file:///path/to/local/manifest.json",
+      "categories": ["linting", "local", "devtools"],
+      "version": "1.0.0",
+      "release_date": "2025-09-01T00:00:00Z",
+      "latest": true
+    }
+  ],
+  "total_count": 2,
+  "updated_at": "2025-09-09T12:00:00Z"
 }
