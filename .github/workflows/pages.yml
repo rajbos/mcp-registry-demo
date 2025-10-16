@@ -27,9 +27,19 @@ jobs:
       
       - name: Create Pages directory
         run: |
+          set -e
           mkdir -p _site
+          if [ ! -f index.html ]; then
+            echo "Error: index.html not found"
+            exit 1
+          fi
+          if [ ! -f registry.json ]; then
+            echo "Error: registry.json not found"
+            exit 1
+          fi
           cp index.html _site/
           cp registry.json _site/
+          echo "Successfully prepared files for deployment"
       
       - name: Setup Pages
         uses: actions/configure-pages@v4
