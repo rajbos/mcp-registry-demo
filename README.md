@@ -16,6 +16,7 @@ The registry follows the MCP protocol structure as documented in the [GitHub Cop
 - `registry.json` - The MCP registry JSON file containing approved server configurations
 - `index.html` - GitHub Pages landing page with information about the registry
 - `.nojekyll` - Bypasses Jekyll processing for direct file serving
+- `.github/workflows/pages.yml` - GitHub Actions workflow for automatic deployment to GitHub Pages
 
 ## Usage
 
