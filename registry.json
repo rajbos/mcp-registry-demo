@@ -1,26 +1,24 @@
 {
   "servers": [
     {
-      "id": "github",
-      "name": "GitHub MCP Server",
-      "description": "Tools and resources for GitHub repos, issues, PRs, and Actions.",
-      "manifest_url": "https://registry.yourcompany.com/servers/github/manifest.json",
-      "categories": ["code", "devops", "github"],
-      "version": "1.0.0",
-      "release_date": "2025-09-01T00:00:00Z",
-      "latest": true
-    },
-    {
-      "id": "local-linter",
-      "name": "Local Linter",
-      "description": "Runs lint checks against local files",
-      "manifest_url": "file:///path/to/local/manifest.json",
-      "categories": ["linting", "local", "devtools"],
-      "version": "1.0.0",
-      "release_date": "2025-09-01T00:00:00Z",
-      "latest": true
+      "server": {
+        "$schema": "https://static.modelcontextprotocol.io/schemas/2025-09-29/server.schema.json",
+        "name": "GitHub MCP Server",
+        "description": "Tools and resources for GitHub repos, issues, PRs, and Actions.",
+        "repository": {
+          "url": "https://api.githubcopilot.com/mcp/",
+          "source": "github"
+        },
+        "version": "1.0.0"
+      },
+      "_meta": {
+        "io.modelcontextprotocol.registry/official": {
+          "status": "active",
+          "publishedAt": "2025-12-05T17:00:00.243434Z",
+          "updatedAt": "2025-12-05T17:00:00.243434Z",
+          "isLatest": true
+        }
+      }
     }
-  ],
-  "total_count": 2,
-  "updated_at": "2025-09-09T12:00:00Z"
+  ]
 }
