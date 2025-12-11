@@ -1,0 +1,26 @@
+{
+  "servers": [
+    {
+      "id": "io.github.githubcopilot/github-mcp-server",
+      "name": "github-mcp-server",
+      "description": "Tools and resources for GitHub repos, issues, PRs, and Actions.",
+      "version": "1.0.0",
+      "updated_at": "2025-12-05T17:00:00.243434Z",
+      "owner": "io.github.githubcopilot",
+      "packages": [
+        {
+          "type": "api",
+          "url": "https://api.githubcopilot.com/mcp/"
+        }
+      ],
+      "runtime": {
+        "type": "api",
+        "entry": "https://api.githubcopilot.com/mcp/"
+      },
+      "tags": ["github", "repos", "issues", "pull-requests", "actions"],
+      "capabilities": ["repositories", "issues", "pull_requests", "actions"],
+      "status": "active",
+      "isLatest": true
+    }
+  ]
+}

@@ -25,21 +25,20 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
       
-      - name: Create Pages directory
-        run: |
-          set -e
-          mkdir -p _site
-          if [ ! -f index.html ]; then
-            echo "Error: index.html not found"
-            exit 1
-          fi
-          if [ ! -f registry.json ]; then
-            echo "Error: registry.json not found"
-            exit 1
-          fi
-          cp index.html _site/
-          cp registry.json _site/
-          echo "Successfully prepared files for deployment"
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Run tests
+        run: npm test
+      
+      - name: Build static site
+        run: npm run build
       
       - name: Setup Pages
         uses: actions/configure-pages@v4
