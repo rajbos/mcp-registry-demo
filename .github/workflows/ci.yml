@@ -4,9 +4,7 @@ on:
   push:
     branches:
       - '**'  # Run on all branches
-  pull_request:
-    branches:
-      - '**'  # Run on all PRs
+  pull_request:  # Runs on all PRs by default
 
 jobs:
   build-and-test:
