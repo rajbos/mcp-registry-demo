@@ -41,15 +41,40 @@
 </head>
 <body>
     <h1>MCP Registry Demo</h1>
-    <p>This is a demonstration of the MCP (Model Context Protocol) registry format for GitHub Copilot.</p>
+    <p>This is a demonstration of the MCP (Model Context Protocol) registry v0.1 API for GitHub Copilot.</p>
     
-    <a href="registry.json" class="json-link">View Registry JSON</a>
+    <h2>API Endpoints</h2>
+    <p>This registry implements the v0.1 specification with the following endpoints:</p>
     
-    <h2>About</h2>
-    <p>This registry follows the MCP protocol structure as documented in the GitHub Copilot documentation for configuring MCP server access.</p>
+    <h3>List All Servers</h3>
+    <pre><code>GET /v0.1/servers</code></pre>
+    <p>Returns a paginated list of all MCP servers in the registry.</p>
+    <a href="v0.1/servers/" class="json-link">Try it</a>
+    
+    <h3>Get Latest Server Version</h3>
+    <pre><code>GET /v0.1/servers/:serverName/versions/latest</code></pre>
+    <p>Returns the latest version of a specific server.</p>
+    <a href="v0.1/servers/github-mcp-server/versions/latest/" class="json-link">Example: GitHub MCP Server</a>
+    
+    <h3>Get Specific Server Version</h3>
+    <pre><code>GET /v0.1/servers/:serverName/versions/:version</code></pre>
+    <p>Returns a specific version of a server.</p>
+    <a href="v0.1/servers/github-mcp-server/versions/1.0.0/" class="json-link">Example: GitHub MCP Server v1.0.0</a>
+    
+    <h2>Legacy Support</h2>
+    <p>For backward compatibility, the old registry format is still available:</p>
+    <a href="registry.json" class="json-link">View Legacy Registry JSON</a>
     
     <h2>Usage</h2>
-    <p>To use this registry, configure your GitHub Copilot settings to point to:</p>
-    <pre><code>https://rajbos.github.io/mcp-registry-demo/registry.json</code></pre>
+    <p>To use this registry with GitHub Copilot, configure your organization or enterprise settings to point to:</p>
+    <pre><code>https://rajbos.github.io/mcp-registry-demo/</code></pre>
+    
+    <h2>CORS Support</h2>
+    <p>All API endpoints support CORS with the following headers:</p>
+    <ul>
+        <li>Access-Control-Allow-Origin: *</li>
+        <li>Access-Control-Allow-Methods: GET, OPTIONS</li>
+        <li>Access-Control-Allow-Headers: Authorization, Content-Type</li>
+    </ul>
 </body>
 </html>
