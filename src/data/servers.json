@@ -1,26 +1,30 @@
 {
   "servers": [
     {
-      "id": "io.github.githubcopilot/github-mcp-server",
-      "name": "github-mcp-server",
-      "description": "Tools and resources for GitHub repos, issues, PRs, and Actions.",
-      "version": "1.0.0",
-      "updated_at": "2025-12-05T17:00:00.243434Z",
-      "owner": "io.github.githubcopilot",
-      "packages": [
-        {
-          "type": "api",
-          "url": "https://api.githubcopilot.com/mcp/"
-        }
-      ],
-      "runtime": {
-        "type": "api",
-        "entry": "https://api.githubcopilot.com/mcp/"
+      "server": {
+        "name": "io.github.githubcopilot/github-mcp-server",
+        "description": "Tools and resources for GitHub repos, issues, PRs, and Actions.",
+        "title": "GitHub MCP Server",
+        "version": "1.0.0",
+        "packages": [
+          {
+            "registryType": "api",
+            "identifier": "github-mcp-server",
+            "transport": {
+              "type": "streamable-http",
+              "url": "https://api.githubcopilot.com/mcp/"
+            }
+          }
+        ]
       },
-      "tags": ["github", "repos", "issues", "pull-requests", "actions"],
-      "capabilities": ["repositories", "issues", "pull_requests", "actions"],
-      "status": "active",
-      "isLatest": true
+      "_meta": {
+        "io.modelcontextprotocol.registry/official": {
+          "status": "active",
+          "publishedAt": "2025-12-05T17:00:00.243434Z",
+          "updatedAt": "2025-12-05T17:00:00.243434Z",
+          "isLatest": true
+        }
+      }
     }
   ]
 }

@@ -6,10 +6,12 @@ This repository hosts a GitHub Pages site that provides a Model Context Protocol
 ## Features
 
 - ✅ Full MCP Registry v0.1 API specification support
+- ✅ **OpenAPI 3.1 compliant** - Validated against [official MCP Registry OpenAPI spec](https://github.com/modelcontextprotocol/registry/blob/main/docs/reference/api/openapi.yaml)
 - ✅ RESTful API endpoints for server discovery
 - ✅ CORS support for cross-origin requests
 - ✅ Static site generation for GitHub Pages deployment
 - ✅ Integration tests with Jest and Supertest
+- ✅ Automated OpenAPI schema validation
 - ✅ Automated deployment via GitHub Actions
 - ✅ Backward compatibility with legacy registry format
 
@@ -48,18 +50,21 @@ Example: `https://rajbos.github.io/mcp-registry-demo/v0.1/servers/github-mcp-ser
 
 ```
 ├── src/
-│   ├── app.js              # Express application with API routes
-│   ├── server.js           # Server entry point for local development
-│   ├── build-static.js     # Static site generator
+│   ├── app.js                    # Express application with API routes
+│   ├── server.js                 # Server entry point for local development
+│   ├── build-static.js           # Static site generator
 │   └── data/
-│       └── servers.json    # Server registry data
+│       └── servers.json          # Server registry data
 ├── tests/
-│   └── api.test.js         # Integration tests
+│   ├── api.test.js               # API integration tests
+│   └── openapi-validation.test.js # OpenAPI schema validation tests
+├── docs/
+│   └── openapi.yaml              # OpenAPI specification (from MCP registry)
 ├── .github/
 │   └── workflows/
-│       └── pages.yml       # GitHub Actions deployment workflow
-├── index.html              # Landing page
-└── package.json            # Node.js dependencies and scripts
+│       └── pages.yml             # GitHub Actions deployment workflow
+├── index.html                    # Landing page
+└── package.json                  # Node.js dependencies and scripts
 ```
 
 ## Development
