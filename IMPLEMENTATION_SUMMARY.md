@@ -19,7 +19,6 @@ Successfully implemented a Node.js application that serves as an MCP (Model Cont
 - **Location:** `src/build-static.js`
 - Generates pre-built JSON files for GitHub Pages
 - Creates directory structure with `index.json` files for clean URLs
-- Maintains backward compatibility with legacy `registry.json` format
 
 ### 3. Data Model
 - **Location:** `src/data/servers.json`
@@ -102,7 +101,6 @@ The solution uses a clever approach:
 ✅ No npm dependency vulnerabilities
 ✅ Proper error handling implemented
 ✅ CORS correctly configured
-✅ Backward compatibility maintained
 
 ## Deployment
 
@@ -115,7 +113,6 @@ The application automatically deploys to GitHub Pages when changes are pushed to
 - List all servers: https://rajbos.github.io/mcp-registry-demo/v0.1/servers/
 - Latest version: https://rajbos.github.io/mcp-registry-demo/v0.1/servers/github-mcp-server/versions/latest/
 - Specific version: https://rajbos.github.io/mcp-registry-demo/v0.1/servers/github-mcp-server/versions/1.0.0/
-- Legacy format: https://rajbos.github.io/mcp-registry-demo/registry.json
 
 ## Usage with GitHub Copilot
 
