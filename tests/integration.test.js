@@ -9,11 +9,23 @@ const https = require('https');
 const BASE_URL = process.env.PAGES_URL || 'https://rajbos.github.io/mcp-registry-demo';
 
 /**
- * Helper function to fetch JSON from a URL
+ * Helper function to fetch JSON from a URL with redirect support
  */
-function fetchJson(url) {
+function fetchJson(url, maxRedirects = 5) {
   return new Promise((resolve, reject) => {
     https.get(url, (res) => {
+      // Handle redirects
+      if (res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
+        if (maxRedirects === 0) {
+          reject(new Error('Too many redirects'));
+          return;
+        }
+        fetchJson(res.headers.location, maxRedirects - 1)
+          .then(resolve)
+          .catch(reject);
+        return;
+      }
+      
       let data = '';
       
       res.on('data', (chunk) => {
@@ -39,13 +51,34 @@ function fetchJson(url) {
   });
 }
 
+/**
+ * Helper function to retry a request with exponential backoff
+ */
+async function fetchJsonWithRetry(url, maxRetries = 3, initialDelay = 1000) {
+  let lastError;
+  
+  for (let i = 0; i < maxRetries; i++) {
+    try {
+      return await fetchJson(url);
+    } catch (error) {
+      lastError = error;
+      if (i < maxRetries - 1) {
+        const delay = initialDelay * Math.pow(2, i);
+        await new Promise(resolve => setTimeout(resolve, delay));
+      }
+    }
+  }
+  
+  throw lastError;
+}
+
 describe('GitHub Pages Integration Tests', () => {
   // Increase timeout for network requests
   jest.setTimeout(15000);
 
   describe('Root endpoint', () => {
     it('should return API information at root', async () => {
-      const response = await fetchJson(`${BASE_URL}/index.json`);
+      const response = await fetchJsonWithRetry(`${BASE_URL}/index.json`);
       
       expect(response.statusCode).toBe(200);
       expect(response.body).toHaveProperty('name');
@@ -57,7 +90,7 @@ describe('GitHub Pages Integration Tests', () => {
 
   describe('GET /v0.1/servers', () => {
     it('should return list of servers with correct structure', async () => {
-      const response = await fetchJson(`${BASE_URL}/v0.1/servers/index.json`);
+      const response = await fetchJsonWithRetry(`${BASE_URL}/v0.1/servers/index.json`);
       
       expect(response.statusCode).toBe(200);
       expect(response.body).toHaveProperty('metadata');
@@ -68,7 +101,7 @@ describe('GitHub Pages Integration Tests', () => {
     });
 
     it('should validate server object structure', async () => {
-      const response = await fetchJson(`${BASE_URL}/v0.1/servers/index.json`);
+      const response = await fetchJsonWithRetry(`${BASE_URL}/v0.1/servers/index.json`);
       
       expect(response.body.servers.length).toBeGreaterThan(0);
       
@@ -98,7 +131,7 @@ describe('GitHub Pages Integration Tests', () => {
 
   describe('GET /v0.1/servers/:serverName/versions/latest', () => {
     it('should return latest version of github-mcp-server', async () => {
-      const response = await fetchJson(`${BASE_URL}/v0.1/servers/github-mcp-server/versions/latest/index.json`);
+      const response = await fetchJsonWithRetry(`${BASE_URL}/v0.1/servers/github-mcp-server/versions/latest/index.json`);
       
       expect(response.statusCode).toBe(200);
       expect(response.body).toHaveProperty('id');
@@ -114,7 +147,7 @@ describe('GitHub Pages Integration Tests', () => {
 
   describe('GET /v0.1/servers/:serverName/versions/:version', () => {
     it('should return specific version of github-mcp-server', async () => {
-      const response = await fetchJson(`${BASE_URL}/v0.1/servers/github-mcp-server/versions/1.0.0/index.json`);
+      const response = await fetchJsonWithRetry(`${BASE_URL}/v0.1/servers/github-mcp-server/versions/1.0.0/index.json`);
       
       expect(response.statusCode).toBe(200);
       expect(response.body).toHaveProperty('id');
@@ -129,7 +162,7 @@ describe('GitHub Pages Integration Tests', () => {
 
   describe('Legacy registry.json', () => {
     it('should return legacy format registry', async () => {
-      const response = await fetchJson(`${BASE_URL}/registry.json`);
+      const response = await fetchJsonWithRetry(`${BASE_URL}/registry.json`);
       
       expect(response.statusCode).toBe(200);
       expect(response.body).toHaveProperty('servers');

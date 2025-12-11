@@ -71,10 +71,21 @@ jobs:
       - name: Install dependencies
         run: npm ci
       
-      - name: Wait for deployment to propagate
-        run: sleep 30
+      - name: Wait for deployment to be accessible
+        run: |
+          URL="${{ needs.deploy.outputs.page_url }}index.json"
+          echo "Waiting for $URL to be accessible..."
+          for i in {1..30}; do
+            if curl -s -f -o /dev/null "$URL"; then
+              echo "Deployment is accessible!"
+              exit 0
+            fi
+            echo "Attempt $i/30: Not ready yet, waiting 5 seconds..."
+            sleep 5
+          done
+          echo "Warning: Deployment may not be fully propagated, but proceeding with tests..."
       
       - name: Run integration tests
         env:
           PAGES_URL: ${{ needs.deploy.outputs.page_url }}
-        run: npm test -- tests/integration.test.js --coverage=false
+        run: npm test -- tests/integration.test.js --collectCoverage=false
