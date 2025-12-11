@@ -10,9 +10,19 @@
     "test": "jest --coverage",
     "test:watch": "jest --watch"
   },
-  "keywords": [],
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "registry",
+    "github-copilot",
+    "api"
+  ],
   "author": "",
   "license": "ISC",
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  },
   "dependencies": {
     "cors": "^2.8.5",
     "express": "^5.2.1"
