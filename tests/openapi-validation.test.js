@@ -140,7 +140,7 @@ describe('OpenAPI Specification Compliance', () => {
         .get('/v0.1/servers/github-mcp-server/versions/latest')
         .expect(200);
       
-      expect(response.body._meta['io.modelcontextprotocol.registry/official'].isLatest).toBe(true);
+      expect(response.body._meta?.['io.modelcontextprotocol.registry/official']?.isLatest).toBe(true);
     });
   });
 

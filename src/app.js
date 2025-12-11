@@ -36,20 +36,21 @@ app.get('/v0.1/servers', (req, res) => {
   // Filter by updated_since if provided
   if (updated_since) {
     const sinceDate = new Date(updated_since);
-    servers = servers.filter(serverResponse => 
-      new Date(serverResponse._meta['io.modelcontextprotocol.registry/official'].updatedAt) > sinceDate
-    );
+    servers = servers.filter(serverResponse => {
+      const updatedAt = serverResponse._meta?.['io.modelcontextprotocol.registry/official']?.updatedAt;
+      return updatedAt && new Date(updatedAt) > sinceDate;
+    });
   }
   
   // Filter by version if provided
   if (version) {
     if (version === 'latest') {
       servers = servers.filter(serverResponse => 
-        serverResponse._meta['io.modelcontextprotocol.registry/official'].isLatest
+        serverResponse._meta?.['io.modelcontextprotocol.registry/official']?.isLatest
       );
     } else {
       servers = servers.filter(serverResponse => 
-        serverResponse.server.version === version
+        serverResponse.server?.version === version
       );
     }
   }
@@ -95,13 +96,13 @@ app.get('/v0.1/servers/:serverName/versions/latest', (req, res) => {
   }
   
   // Return the latest version (filter by isLatest flag)
-  if (!serverResponse._meta['io.modelcontextprotocol.registry/official'].isLatest) {
+  if (!serverResponse._meta?.['io.modelcontextprotocol.registry/official']?.isLatest) {
     // Find the latest version of this server
     const latestServer = serversData.servers.find(s => 
       (s.server.name === decodedName || 
        s.server.name.includes(serverName) ||
        s.server.name.endsWith('/' + serverName)) &&
-      s._meta['io.modelcontextprotocol.registry/official'].isLatest
+      s._meta?.['io.modelcontextprotocol.registry/official']?.isLatest
     );
     
     if (latestServer) {
@@ -149,9 +150,9 @@ app.get('/v0.1/servers/:serverName/versions/:version', (req, res) => {
   const decodedName = decodeURIComponent(serverName);
   const decodedVersion = decodeURIComponent(version);
   
-  // Handle 'latest' version
+  // Handle 'latest' version by redirecting to the latest endpoint
   if (decodedVersion === 'latest') {
-    return app._router.handle({ ...req, url: `/v0.1/servers/${serverName}/versions/latest` }, res);
+    return res.redirect(`/v0.1/servers/${serverName}/versions/latest`);
   }
   
   // Find server by name and version
@@ -159,7 +160,7 @@ app.get('/v0.1/servers/:serverName/versions/:version', (req, res) => {
     (s.server.name === decodedName || 
      s.server.name.includes(serverName) ||
      s.server.name.endsWith('/' + serverName)) && 
-    s.server.version === decodedVersion
+    s.server?.version === decodedVersion
   );
   
   if (!serverResponse) {

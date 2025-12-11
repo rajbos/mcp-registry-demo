@@ -36,7 +36,7 @@ serversData.servers.forEach(serverResponse => {
   const version = serverResponse.server.version;
   
   // Generate /v0.1/servers/:serverName/versions/latest
-  if (serverResponse._meta['io.modelcontextprotocol.registry/official'].isLatest) {
+  if (serverResponse._meta?.['io.modelcontextprotocol.registry/official']?.isLatest) {
     writeJsonFile(`v0.1/servers/${serverName}/versions/latest/index.json`, serverResponse);
   }
   
@@ -44,10 +44,11 @@ serversData.servers.forEach(serverResponse => {
   writeJsonFile(`v0.1/servers/${serverName}/versions/${version}/index.json`, serverResponse);
   
   // Generate /v0.1/servers/:serverName/versions endpoint (list of all versions)
+  const serverVersions = serversData.servers.filter(s => s.server.name === serverName);
   const versionsResponse = {
-    servers: serversData.servers.filter(s => s.server.name === serverName),
+    servers: serverVersions,
     metadata: {
-      count: serversData.servers.filter(s => s.server.name === serverName).length
+      count: serverVersions.length
     }
   };
   writeJsonFile(`v0.1/servers/${serverName}/versions/index.json`, versionsResponse);
