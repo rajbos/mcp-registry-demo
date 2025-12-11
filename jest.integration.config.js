@@ -1,7 +1,12 @@
+const baseConfig = require('./jest.config.js');
+
 module.exports = {
-  testEnvironment: 'node',
+  ...baseConfig,
   testMatch: [
     '**/tests/integration.test.js'
   ],
-  verbose: true
+  testPathIgnorePatterns: [
+    '/node_modules/'
+  ],
+  collectCoverageFrom: []
 };

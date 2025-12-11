@@ -10,7 +10,7 @@ module.exports = {
   ],
   testPathIgnorePatterns: [
     '/node_modules/',
-    '/tests/integration.test.js'
+    '.*/tests/integration\\.test\\.js$'
   ],
   verbose: true
 };
