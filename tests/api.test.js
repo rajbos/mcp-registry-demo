@@ -37,8 +37,7 @@ describe('MCP Registry API v0.1', () => {
       expect(response.body).toHaveProperty('metadata');
       expect(response.body).toHaveProperty('servers');
       expect(Array.isArray(response.body.servers)).toBe(true);
-      expect(response.body.metadata).toHaveProperty('total');
-      expect(response.body.metadata).toHaveProperty('limit');
+      expect(response.body.metadata).toHaveProperty('count');
     });
 
     it('should return CORS headers', async () => {
@@ -56,11 +55,12 @@ describe('MCP Registry API v0.1', () => {
         .expect(200);
       
       expect(response.body.servers.length).toBeGreaterThan(0);
-      const server = response.body.servers[0];
+      const serverResponse = response.body.servers[0];
+      const server = serverResponse.server;
       const hasGithub = 
         server.name.toLowerCase().includes('github') ||
         server.description.toLowerCase().includes('github') ||
-        (server.tags && server.tags.some(tag => tag.toLowerCase().includes('github')));
+        (server.title && server.title.toLowerCase().includes('github'));
       expect(hasGithub).toBe(true);
     });
 
@@ -71,7 +71,7 @@ describe('MCP Registry API v0.1', () => {
         .expect(200);
       
       expect(response.body.servers.length).toBeLessThanOrEqual(1);
-      expect(response.body.metadata.limit).toBe(1);
+      expect(response.body.metadata.count).toBeLessThanOrEqual(1);
     });
 
     it('should validate server object structure', async () => {
@@ -80,14 +80,23 @@ describe('MCP Registry API v0.1', () => {
         .expect(200);
       
       if (response.body.servers.length > 0) {
-        const server = response.body.servers[0];
-        expect(server).toHaveProperty('id');
+        const serverResponse = response.body.servers[0];
+        expect(serverResponse).toHaveProperty('server');
+        expect(serverResponse).toHaveProperty('_meta');
+        
+        const server = serverResponse.server;
         expect(server).toHaveProperty('name');
         expect(server).toHaveProperty('description');
         expect(server).toHaveProperty('version');
-        expect(server).toHaveProperty('updated_at');
         expect(server).toHaveProperty('packages');
         expect(Array.isArray(server.packages)).toBe(true);
+        
+        const meta = serverResponse._meta;
+        const officialMeta = meta['io.modelcontextprotocol.registry/official'];
+        expect(officialMeta).toBeDefined();
+        expect(officialMeta).toHaveProperty('status');
+        expect(officialMeta).toHaveProperty('updatedAt');
+        expect(officialMeta).toHaveProperty('isLatest');
       }
     });
   });
@@ -99,9 +108,10 @@ describe('MCP Registry API v0.1', () => {
         .expect('Content-Type', /json/)
         .expect(200);
       
-      expect(response.body).toHaveProperty('id');
-      expect(response.body).toHaveProperty('version');
-      expect(response.body).toHaveProperty('isLatest', true);
+      expect(response.body).toHaveProperty('server');
+      expect(response.body).toHaveProperty('_meta');
+      expect(response.body.server).toHaveProperty('version');
+      expect(response.body._meta['io.modelcontextprotocol.registry/official'].isLatest).toBe(true);
     });
 
     it('should return 404 for non-existent server', async () => {
@@ -130,8 +140,9 @@ describe('MCP Registry API v0.1', () => {
         .expect('Content-Type', /json/)
         .expect(200);
       
-      expect(response.body).toHaveProperty('id');
-      expect(response.body).toHaveProperty('version', '1.0.0');
+      expect(response.body).toHaveProperty('server');
+      expect(response.body).toHaveProperty('_meta');
+      expect(response.body.server).toHaveProperty('version', '1.0.0');
     });
 
     it('should return 404 for non-existent version', async () => {
@@ -141,7 +152,7 @@ describe('MCP Registry API v0.1', () => {
         .expect(404);
       
       expect(response.body).toHaveProperty('error');
-      expect(response.body.error).toBe('Server version not found');
+      expect(response.body.error).toBe('Server not found');
     });
 
     it('should have CORS headers', async () => {

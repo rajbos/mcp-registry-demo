@@ -23,24 +23,34 @@ function writeJsonFile(filepath, data) {
 
 // Generate /v0.1/servers endpoint
 const serversResponse = {
+  servers: serversData.servers,
   metadata: {
-    total: serversData.servers.length,
-    limit: 30
-  },
-  servers: serversData.servers
+    count: serversData.servers.length
+  }
 };
 writeJsonFile('v0.1/servers/index.json', serversResponse);
 
 // Generate individual server endpoints
-serversData.servers.forEach(server => {
-  const serverName = server.name;
-  const version = server.version;
+serversData.servers.forEach(serverResponse => {
+  const serverName = serverResponse.server.name;
+  const version = serverResponse.server.version;
   
   // Generate /v0.1/servers/:serverName/versions/latest
-  writeJsonFile(`v0.1/servers/${serverName}/versions/latest/index.json`, server);
+  if (serverResponse._meta['io.modelcontextprotocol.registry/official'].isLatest) {
+    writeJsonFile(`v0.1/servers/${serverName}/versions/latest/index.json`, serverResponse);
+  }
   
   // Generate /v0.1/servers/:serverName/versions/:version
-  writeJsonFile(`v0.1/servers/${serverName}/versions/${version}/index.json`, server);
+  writeJsonFile(`v0.1/servers/${serverName}/versions/${version}/index.json`, serverResponse);
+  
+  // Generate /v0.1/servers/:serverName/versions endpoint (list of all versions)
+  const versionsResponse = {
+    servers: serversData.servers.filter(s => s.server.name === serverName),
+    metadata: {
+      count: serversData.servers.filter(s => s.server.name === serverName).length
+    }
+  };
+  writeJsonFile(`v0.1/servers/${serverName}/versions/index.json`, versionsResponse);
 });
 
 // Generate root API info
@@ -68,27 +78,9 @@ fs.copyFileSync(nojekyllSrc, nojekyllDest);
 console.log('Copied: .nojekyll');
 
 // Copy backward-compatible registry.json for legacy support
+// The servers are already in the correct format (ServerResponse with server and _meta)
 writeJsonFile('registry.json', {
-  servers: serversData.servers.map(server => ({
-    server: {
-      $schema: "https://static.modelcontextprotocol.io/schemas/2025-09-29/server.schema.json",
-      name: server.description,
-      description: server.description,
-      repository: {
-        url: server.packages[0]?.url || "",
-        source: "github"
-      },
-      version: server.version
-    },
-    _meta: {
-      "io.modelcontextprotocol.registry/official": {
-        status: server.status || "active",
-        publishedAt: server.updated_at,
-        updatedAt: server.updated_at,
-        isLatest: server.isLatest || true
-      }
-    }
-  }))
+  servers: serversData.servers
 });
 
 console.log('\nStatic site generation complete!');

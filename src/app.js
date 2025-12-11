@@ -19,44 +19,56 @@ app.use(express.json());
 
 // GET /v0.1/servers - List all servers
 app.get('/v0.1/servers', (req, res) => {
-  const { search, limit = 30, updated_since } = req.query;
+  const { search, limit = 30, updated_since, version } = req.query;
   
   let servers = [...serversData.servers];
   
   // Filter by search if provided
   if (search) {
     const searchLower = search.toLowerCase();
-    servers = servers.filter(server => 
-      server.name.toLowerCase().includes(searchLower) ||
-      server.description.toLowerCase().includes(searchLower) ||
-      server.tags?.some(tag => tag.toLowerCase().includes(searchLower))
+    servers = servers.filter(serverResponse => 
+      serverResponse.server.name.toLowerCase().includes(searchLower) ||
+      serverResponse.server.description.toLowerCase().includes(searchLower) ||
+      serverResponse.server.title?.toLowerCase().includes(searchLower)
     );
   }
   
   // Filter by updated_since if provided
   if (updated_since) {
     const sinceDate = new Date(updated_since);
-    servers = servers.filter(server => 
-      new Date(server.updated_at) > sinceDate
+    servers = servers.filter(serverResponse => 
+      new Date(serverResponse._meta['io.modelcontextprotocol.registry/official'].updatedAt) > sinceDate
     );
+  }
+  
+  // Filter by version if provided
+  if (version) {
+    if (version === 'latest') {
+      servers = servers.filter(serverResponse => 
+        serverResponse._meta['io.modelcontextprotocol.registry/official'].isLatest
+      );
+    } else {
+      servers = servers.filter(serverResponse => 
+        serverResponse.server.version === version
+      );
+    }
   }
   
   // Apply limit
   const maxLimit = Math.min(parseInt(limit, 10) || 30, 100);
   const paginatedServers = servers.slice(0, maxLimit);
   
-  // Build response
+  // Build response according to OpenAPI spec
   const response = {
+    servers: paginatedServers,
     metadata: {
-      total: servers.length,
-      limit: maxLimit
-    },
-    servers: paginatedServers
+      count: paginatedServers.length
+    }
   };
   
   // Add nextCursor if there are more results
   if (servers.length > maxLimit) {
-    response.metadata.nextCursor = servers[maxLimit].id;
+    response.metadata.nextCursor = servers[maxLimit].server.name;
   }
   
   res.json(response);
@@ -66,23 +78,30 @@ app.get('/v0.1/servers', (req, res) => {
 app.get('/v0.1/servers/:serverName/versions/latest', (req, res) => {
   const { serverName } = req.params;
   
-  // Find server by name (looking for id that contains the serverName)
-  const server = serversData.servers.find(s => 
-    s.id.includes(serverName) || s.name === serverName
+  // Decode URL-encoded server name
+  const decodedName = decodeURIComponent(serverName);
+  
+  // Find server by name - match exact name or if name contains the search string
+  const serverResponse = serversData.servers.find(s => 
+    s.server.name === decodedName || 
+    s.server.name.includes(serverName) ||
+    s.server.name.endsWith('/' + serverName)
   );
   
-  if (!server) {
+  if (!serverResponse) {
     return res.status(404).json({
-      error: 'Server not found',
-      message: `No server found with name: ${serverName}`
+      error: 'Server not found'
     });
   }
   
   // Return the latest version (filter by isLatest flag)
-  if (!server.isLatest) {
+  if (!serverResponse._meta['io.modelcontextprotocol.registry/official'].isLatest) {
     // Find the latest version of this server
     const latestServer = serversData.servers.find(s => 
-      (s.id.includes(serverName) || s.name === serverName) && s.isLatest
+      (s.server.name === decodedName || 
+       s.server.name.includes(serverName) ||
+       s.server.name.endsWith('/' + serverName)) &&
+      s._meta['io.modelcontextprotocol.registry/official'].isLatest
     );
     
     if (latestServer) {
@@ -90,26 +109,66 @@ app.get('/v0.1/servers/:serverName/versions/latest', (req, res) => {
     }
   }
   
-  res.json(server);
+  res.json(serverResponse);
+});
+
+// GET /v0.1/servers/:serverName/versions - List all versions of a server
+app.get('/v0.1/servers/:serverName/versions', (req, res) => {
+  const { serverName } = req.params;
+  
+  // Decode URL-encoded server name
+  const decodedName = decodeURIComponent(serverName);
+  
+  // Find all versions of this server
+  const versions = serversData.servers.filter(s => 
+    s.server.name === decodedName || 
+    s.server.name.includes(serverName) ||
+    s.server.name.endsWith('/' + serverName)
+  );
+  
+  if (versions.length === 0) {
+    return res.status(404).json({
+      error: 'Server not found'
+    });
+  }
+  
+  // Return as ServerList format
+  res.json({
+    servers: versions,
+    metadata: {
+      count: versions.length
+    }
+  });
 });
 
 // GET /v0.1/servers/:serverName/versions/:version - Get specific version of a server
 app.get('/v0.1/servers/:serverName/versions/:version', (req, res) => {
   const { serverName, version } = req.params;
   
+  // Decode URL-encoded parameters
+  const decodedName = decodeURIComponent(serverName);
+  const decodedVersion = decodeURIComponent(version);
+  
+  // Handle 'latest' version
+  if (decodedVersion === 'latest') {
+    return app._router.handle({ ...req, url: `/v0.1/servers/${serverName}/versions/latest` }, res);
+  }
+  
   // Find server by name and version
-  const server = serversData.servers.find(s => 
-    (s.id.includes(serverName) || s.name === serverName) && s.version === version
+  const serverResponse = serversData.servers.find(s => 
+    (s.server.name === decodedName || 
+     s.server.name.includes(serverName) ||
+     s.server.name.endsWith('/' + serverName)) && 
+    s.server.version === decodedVersion
   );
   
-  if (!server) {
+  if (!serverResponse) {
     return res.status(404).json({
-      error: 'Server version not found',
-      message: `No server found with name: ${serverName} and version: ${version}`
+      error: 'Server not found'
     });
   }
   
-  res.json(server);
+  res.json(serverResponse);
 });
 
 // Root endpoint
