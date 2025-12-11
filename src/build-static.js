@@ -28,7 +28,10 @@ function flattenServerResponse(serverResponse) {
   const meta = serverResponse._meta?.['io.modelcontextprotocol.registry/official'];
   
   // Extract simple server name from full name (e.g., "github-mcp-server" from "io.github.githubcopilot/github-mcp-server")
-  const simpleName = server.name.split('/').pop();
+  const serverName = server.name || '';
+  const nameParts = serverName.split('/');
+  const simpleName = nameParts.pop() || serverName;
+  const owner = nameParts[0] || '';
   
   return {
     id: simpleName,
@@ -37,7 +40,7 @@ function flattenServerResponse(serverResponse) {
     title: server.title,
     version: server.version,
     updated_at: meta?.updatedAt,
-    owner: server.name.split('/')[0], // Extract owner from full name
+    owner: owner,
     packages: server.packages?.map(pkg => ({
       type: pkg.registryType,
       url: pkg.transport?.url
@@ -55,9 +58,9 @@ const flattenedServers = serversData.servers.map(flattenServerResponse);
 const serversResponse = {
   servers: flattenedServers,
   metadata: {
-    total: flattenedServers.length,
-    limit: 100,
-    count: flattenedServers.length
+    total: flattenedServers.length,  // Total count for pagination
+    limit: 100,                       // Max items per page
+    count: flattenedServers.length   // Actual items in current response
   }
 };
 writeJsonFile('v0.1/servers/index.json', serversResponse);
@@ -84,9 +87,9 @@ serversData.servers.forEach(serverResponse => {
   const versionsResponse = {
     servers: serverVersions,
     metadata: {
-      total: serverVersions.length,
-      limit: 100,
-      count: serverVersions.length
+      total: serverVersions.length,  // Total count for pagination
+      limit: 100,                     // Max items per page
+      count: serverVersions.length   // Actual items in current response
     }
   };
   writeJsonFile(`v0.1/servers/${simpleName}/versions/index.json`, versionsResponse);
