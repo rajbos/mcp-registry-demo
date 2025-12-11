@@ -89,4 +89,4 @@ jobs:
       - name: Run integration tests
         env:
           PAGES_URL: ${{ needs.deploy.outputs.page_url }}
-        run: npm test -- tests/integration.test.js --coverage=false
+        run: npx jest --config=jest.integration.config.js
