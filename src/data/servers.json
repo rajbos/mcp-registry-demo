@@ -25,6 +25,32 @@
           "isLatest": true
         }
       }
+    },
+    {
+      "server": {
+        "name": "microsoftdocs/mcp",
+        "description": "Microsoft Learn MCP server providing access to documentation and learning resources.",
+        "title": "MS Learn MCP Server",
+        "version": "1.0.0",
+        "packages": [
+          {
+            "registryType": "api",
+            "identifier": "ms-learn-mcp-server",
+            "transport": {
+              "type": "streamable-http",
+              "url": "https://learn.microsoft.com/api/mcp"
+            }
+          }
+        ]
+      },
+      "_meta": {
+        "io.modelcontextprotocol.registry/official": {
+          "status": "active",
+          "publishedAt": "2025-12-11T21:17:00.000000Z",
+          "updatedAt": "2025-12-11T21:17:00.000000Z",
+          "isLatest": true
+        }
+      }
     }
   ]
 }
