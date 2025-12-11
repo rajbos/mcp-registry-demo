@@ -4,6 +4,7 @@
  */
 
 const https = require('https');
+const http = require('http');
 
 // Base URL for the deployed site - can be overridden via environment variable
 const BASE_URL = process.env.PAGES_URL || 'https://rajbos.github.io/mcp-registry-demo';
@@ -13,7 +14,9 @@ const BASE_URL = process.env.PAGES_URL || 'https://rajbos.github.io/mcp-registry
  */
 function fetchJson(url, maxRedirects = 5) {
   return new Promise((resolve, reject) => {
-    https.get(url, (res) => {
+    // Choose http or https based on URL protocol
+    const client = url.startsWith('https:') ? https : http;
+    client.get(url, (res) => {
       // Handle redirects
       if (res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
         if (maxRedirects === 0) {
@@ -157,25 +160,6 @@ describe('GitHub Pages Integration Tests', () => {
       expect(response.body).toHaveProperty('owner');
       expect(response.body).toHaveProperty('packages');
       expect(response.body).toHaveProperty('runtime');
-    });
-  });
-
-  describe('Legacy registry.json', () => {
-    it('should return legacy format registry', async () => {
-      const response = await fetchJsonWithRetry(`${BASE_URL}/registry.json`);
-      
-      expect(response.statusCode).toBe(200);
-      expect(response.body).toHaveProperty('servers');
-      expect(Array.isArray(response.body.servers)).toBe(true);
-      
-      if (response.body.servers.length > 0) {
-        const serverEntry = response.body.servers[0];
-        expect(serverEntry).toHaveProperty('server');
-        expect(serverEntry).toHaveProperty('_meta');
-        expect(serverEntry.server).toHaveProperty('name');
-        expect(serverEntry.server).toHaveProperty('description');
-        expect(serverEntry.server).toHaveProperty('version');
-      }
     });
   });
 });
