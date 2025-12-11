@@ -75,6 +75,7 @@ jobs:
         run: |
           URL="${{ needs.deploy.outputs.page_url }}index.json"
           echo "Waiting for $URL to be accessible..."
+          # Poll up to 30 times with 5 second intervals (max 150 seconds total)
           for i in {1..30}; do
             if curl -s -f -o /dev/null "$URL"; then
               echo "Deployment is accessible!"
@@ -88,4 +89,4 @@ jobs:
       - name: Run integration tests
         env:
           PAGES_URL: ${{ needs.deploy.outputs.page_url }}
-        run: npm test -- tests/integration.test.js --collectCoverage=false
+        run: npm test -- tests/integration.test.js --coverage=false

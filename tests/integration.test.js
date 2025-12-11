@@ -73,8 +73,8 @@ async function fetchJsonWithRetry(url, maxRetries = 3, initialDelay = 1000) {
 }
 
 describe('GitHub Pages Integration Tests', () => {
-  // Increase timeout for network requests
-  jest.setTimeout(15000);
+  // Increase timeout for network requests and retries (up to 7s for 3 retries with backoff)
+  jest.setTimeout(20000);
 
   describe('Root endpoint', () => {
     it('should return API information at root', async () => {
