@@ -13,7 +13,6 @@ This repository hosts a GitHub Pages site that provides a Model Context Protocol
 - ✅ Integration tests with Jest and Supertest
 - ✅ Automated OpenAPI schema validation
 - ✅ Automated deployment via GitHub Actions
-- ✅ Backward compatibility with legacy registry format
 
 ## API Endpoints
 
@@ -121,11 +120,6 @@ To add a new MCP server to the registry:
 3. Run tests to validate: `npm test`
 4. Build and verify: `npm run build`
 5. Commit and push changes
-
-## Legacy Support
-
-For backward compatibility, the old single-file registry format is still available at:
-- `https://rajbos.github.io/mcp-registry-demo/registry.json`
 
 ## References
 
