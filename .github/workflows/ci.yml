@@ -6,6 +6,9 @@ on:
       - '**'  # Run on all branches
   pull_request:  # Runs on all PRs by default
 
+permissions:
+  contents: read
+
 jobs:
   build-and-test:
     name: Build and Test
