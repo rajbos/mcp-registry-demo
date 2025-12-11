@@ -21,37 +21,75 @@ function writeJsonFile(filepath, data) {
   console.log(`Generated: ${filepath}`);
 }
 
-// Generate /v0.1/servers endpoint
+// Helper function to flatten server response for static site
+// Transforms {server: {...}, _meta: {...}} to flat structure expected by integration tests
+function flattenServerResponse(serverResponse) {
+  const server = serverResponse.server;
+  const meta = serverResponse._meta?.['io.modelcontextprotocol.registry/official'];
+  
+  // Extract simple server name from full name (e.g., "github-mcp-server" from "io.github.githubcopilot/github-mcp-server")
+  const simpleName = server.name.split('/').pop();
+  
+  return {
+    id: simpleName,
+    name: simpleName,
+    description: server.description,
+    title: server.title,
+    version: server.version,
+    updated_at: meta?.updatedAt,
+    owner: server.name.split('/')[0], // Extract owner from full name
+    packages: server.packages?.map(pkg => ({
+      type: pkg.registryType,
+      url: pkg.transport?.url
+    })) || [],
+    runtime: server.packages?.[0]?.transport ? {
+      type: server.packages[0].transport.type,
+      entry: server.packages[0].transport.url
+    } : null,
+    isLatest: meta?.isLatest || false
+  };
+}
+
+// Generate /v0.1/servers endpoint with flattened server objects
+const flattenedServers = serversData.servers.map(flattenServerResponse);
 const serversResponse = {
-  servers: serversData.servers,
+  servers: flattenedServers,
   metadata: {
-    count: serversData.servers.length
+    total: flattenedServers.length,
+    limit: 100,
+    count: flattenedServers.length
   }
 };
 writeJsonFile('v0.1/servers/index.json', serversResponse);
 
-// Generate individual server endpoints
+// Generate individual server endpoints with flattened structure
 serversData.servers.forEach(serverResponse => {
   const serverName = serverResponse.server.name;
+  const simpleName = serverName.split('/').pop(); // Extract simple name for path
   const version = serverResponse.server.version;
+  const flattenedServer = flattenServerResponse(serverResponse);
   
   // Generate /v0.1/servers/:serverName/versions/latest
   if (serverResponse._meta?.['io.modelcontextprotocol.registry/official']?.isLatest) {
-    writeJsonFile(`v0.1/servers/${serverName}/versions/latest/index.json`, serverResponse);
+    writeJsonFile(`v0.1/servers/${simpleName}/versions/latest/index.json`, flattenedServer);
   }
   
   // Generate /v0.1/servers/:serverName/versions/:version
-  writeJsonFile(`v0.1/servers/${serverName}/versions/${version}/index.json`, serverResponse);
+  writeJsonFile(`v0.1/servers/${simpleName}/versions/${version}/index.json`, flattenedServer);
   
   // Generate /v0.1/servers/:serverName/versions endpoint (list of all versions)
-  const serverVersions = serversData.servers.filter(s => s.server.name === serverName);
+  const serverVersions = serversData.servers
+    .filter(s => s.server.name === serverName)
+    .map(flattenServerResponse);
   const versionsResponse = {
     servers: serverVersions,
     metadata: {
+      total: serverVersions.length,
+      limit: 100,
       count: serverVersions.length
     }
   };
-  writeJsonFile(`v0.1/servers/${serverName}/versions/index.json`, versionsResponse);
+  writeJsonFile(`v0.1/servers/${simpleName}/versions/index.json`, versionsResponse);
 });
 
 // Generate root API info
@@ -77,12 +115,6 @@ const nojekyllSrc = path.join(__dirname, '..', '.nojekyll');
 const nojekyllDest = path.join(siteDir, '.nojekyll');
 fs.copyFileSync(nojekyllSrc, nojekyllDest);
 console.log('Copied: .nojekyll');
-
-// Copy backward-compatible registry.json for legacy support
-// The servers are already in the correct format (ServerResponse with server and _meta)
-writeJsonFile('registry.json', {
-  servers: serversData.servers
-});
 
 console.log('\nStatic site generation complete!');
 console.log(`Files generated in: ${siteDir}`);
