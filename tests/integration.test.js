@@ -136,7 +136,7 @@ describe('GitHub Pages Integration Tests', () => {
 
   describe('GET /v0.1/servers/:serverName/versions/latest', () => {
     it('should return latest version of github-mcp-server', async () => {
-      const response = await fetchJsonWithRetry(`${BASE_URL}/v0.1/servers/github-mcp-server/versions/latest/index.json`);
+      const response = await fetchJsonWithRetry(`${BASE_URL}/v0.1/servers/io-github-githubcopilot-github-mcp-server/versions/latest/index.json`);
       
       expect(response.statusCode).toBe(200);
       // v0.1 spec: ServerResponse format
@@ -156,7 +156,7 @@ describe('GitHub Pages Integration Tests', () => {
 
   describe('GET /v0.1/servers/:serverName/versions/:version', () => {
     it('should return specific version of github-mcp-server', async () => {
-      const response = await fetchJsonWithRetry(`${BASE_URL}/v0.1/servers/github-mcp-server/versions/1.0.0/index.json`);
+      const response = await fetchJsonWithRetry(`${BASE_URL}/v0.1/servers/io-github-githubcopilot-github-mcp-server/versions/1.0.0/index.json`);
       
       expect(response.statusCode).toBe(200);
       // v0.1 spec: ServerResponse format
