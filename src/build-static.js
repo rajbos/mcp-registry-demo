@@ -21,75 +21,36 @@ function writeJsonFile(filepath, data) {
   console.log(`Generated: ${filepath}`);
 }
 
-// Helper function to flatten server response for static site
-// Transforms {server: {...}, _meta: {...}} to flat structure expected by integration tests
-function flattenServerResponse(serverResponse) {
-  const server = serverResponse.server;
-  const meta = serverResponse._meta?.['io.modelcontextprotocol.registry/official'];
-  
-  // Extract simple server name from full name (e.g., "github-mcp-server" from "io.github.githubcopilot/github-mcp-server")
-  const serverName = server.name || '';
-  const nameParts = serverName.split('/');
-  const simpleName = nameParts.pop() || serverName;
-  const owner = nameParts[0] || '';
-  
-  return {
-    id: simpleName,
-    name: simpleName,
-    description: server.description,
-    title: server.title,
-    version: server.version,
-    updated_at: meta?.updatedAt,
-    owner: owner,
-    packages: server.packages?.map(pkg => ({
-      type: pkg.registryType,
-      url: pkg.transport?.url
-    })) || [],
-    runtime: server.packages?.[0]?.transport ? {
-      type: server.packages[0].transport.type,
-      entry: server.packages[0].transport.url
-    } : null,
-    isLatest: meta?.isLatest || false
-  };
-}
-
-// Generate /v0.1/servers endpoint with flattened server objects
-const flattenedServers = serversData.servers.map(flattenServerResponse);
+// Generate /v0.1/servers endpoint with spec-compliant format
 const serversResponse = {
-  servers: flattenedServers,
+  servers: serversData.servers,
   metadata: {
-    total: flattenedServers.length,  // Total count for pagination
-    limit: 100,                       // Max items per page
-    count: flattenedServers.length   // Actual items in current response
+    count: serversData.servers.length
   }
 };
 writeJsonFile('v0.1/servers/index.json', serversResponse);
 
-// Generate individual server endpoints with flattened structure
+// Generate individual server endpoints with spec-compliant format
 serversData.servers.forEach(serverResponse => {
   const serverName = serverResponse.server.name;
   const simpleName = serverName.split('/').pop(); // Extract simple name for path
   const version = serverResponse.server.version;
-  const flattenedServer = flattenServerResponse(serverResponse);
   
   // Generate /v0.1/servers/:serverName/versions/latest
   if (serverResponse._meta?.['io.modelcontextprotocol.registry/official']?.isLatest) {
-    writeJsonFile(`v0.1/servers/${simpleName}/versions/latest/index.json`, flattenedServer);
+    writeJsonFile(`v0.1/servers/${simpleName}/versions/latest/index.json`, serverResponse);
   }
   
   // Generate /v0.1/servers/:serverName/versions/:version
-  writeJsonFile(`v0.1/servers/${simpleName}/versions/${version}/index.json`, flattenedServer);
+  writeJsonFile(`v0.1/servers/${simpleName}/versions/${version}/index.json`, serverResponse);
   
   // Generate /v0.1/servers/:serverName/versions endpoint (list of all versions)
   const serverVersions = serversData.servers
-    .filter(s => s.server.name === serverName)
-    .map(flattenServerResponse);
+    .filter(s => s.server.name === serverName);
   const versionsResponse = {
     servers: serverVersions,
     metadata: {
-      total: serverVersions.length,  // Total count for pagination
-      limit: 100,                     // Max items per page
-      count: serverVersions.length   // Actual items in current response
+      count: serverVersions.length
     }
   };
   writeJsonFile(`v0.1/servers/${simpleName}/versions/index.json`, versionsResponse);

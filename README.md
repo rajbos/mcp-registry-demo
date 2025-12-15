@@ -94,6 +94,29 @@ npm run build
 ```
 This generates static JSON files in the `_site` directory for GitHub Pages deployment.
 
+### Validate Registry API
+```bash
+./tests/bash-validation.sh [REGISTRY_URL]
+```
+Runs comprehensive validation tests against a registry API. Tests include:
+- Endpoint availability and response codes
+- JSON structure validation
+- HTTP header validation
+- Pagination support
+- Error handling
+
+Examples:
+```bash
+# Test local server
+./tests/bash-validation.sh http://localhost:3000
+
+# Test official MCP registry
+./tests/bash-validation.sh https://registry.modelcontextprotocol.io
+
+# Verbose output
+VERBOSE=1 ./tests/bash-validation.sh http://localhost:3000
+```
+
 ## Deployment
 
 The site is automatically deployed to GitHub Pages via GitHub Actions when changes are pushed to the `main` branch. The workflow:
