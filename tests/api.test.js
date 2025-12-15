@@ -88,8 +88,11 @@ describe('MCP Registry API v0.1', () => {
         expect(server).toHaveProperty('name');
         expect(server).toHaveProperty('description');
         expect(server).toHaveProperty('version');
-        expect(server).toHaveProperty('packages');
-        expect(Array.isArray(server.packages)).toBe(true);
+
+        // Server must have either packages or remotes (or both)
+        const hasPackages = server.packages && Array.isArray(server.packages);
+        const hasRemotes = server.remotes && Array.isArray(server.remotes);
+        expect(hasPackages || hasRemotes).toBe(true);
         
         const meta = serverResponse._meta;
         const officialMeta = meta['io.modelcontextprotocol.registry/official'];
