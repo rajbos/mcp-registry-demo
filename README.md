@@ -99,9 +99,14 @@ This generates static JSON files in the `_site` directory for GitHub Pages deplo
 ./tests/bash-validation.sh [REGISTRY_URL]
 ```
 Runs comprehensive validation tests against a registry API. Tests include:
-- Endpoint availability and response codes
+- Endpoint availability and response codes (GET /v0.1/servers, etc.)
 - JSON structure validation
 - HTTP header validation
+- **CORS headers validation** (required for VS Code):
+  - `Access-Control-Allow-Origin: *`
+  - `Access-Control-Allow-Methods: GET, OPTIONS`
+  - `Access-Control-Allow-Headers: Authorization, Content-Type`
+- OPTIONS preflight request support
 - Pagination support
 - Error handling
 
@@ -116,6 +121,8 @@ Examples:
 # Verbose output
 VERBOSE=1 ./tests/bash-validation.sh http://localhost:3000
 ```
+
+**Note**: The bash validation script checks for proper CORS headers. If deploying to GitHub Pages, note that GitHub Pages does not support custom HTTP headers. Consider using a service like Azure API Management to add CORS headers if needed for production use with VS Code.
 
 ## Deployment
 
