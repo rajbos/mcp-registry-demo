@@ -116,13 +116,22 @@ describe('GitHub Pages Integration Tests', () => {
       expect(server).toHaveProperty('name');
       expect(server).toHaveProperty('description');
       expect(server).toHaveProperty('version');
-      expect(server).toHaveProperty('packages');
       
-      // Validate packages array
-      expect(Array.isArray(server.packages)).toBe(true);
-      if (server.packages.length > 0) {
+      // Server must have either packages or remotes (or both)
+      const hasPackages = server.packages && Array.isArray(server.packages);
+      const hasRemotes = server.remotes && Array.isArray(server.remotes);
+      expect(hasPackages || hasRemotes).toBe(true);
+      
+      // Validate packages array if present
+      if (hasPackages && server.packages.length > 0) {
         expect(server.packages[0]).toHaveProperty('registryType');
         expect(server.packages[0]).toHaveProperty('identifier');
+      }
+      
+      // Validate remotes array if present
+      if (hasRemotes && server.remotes.length > 0) {
+        expect(server.remotes[0]).toHaveProperty('type');
+        expect(server.remotes[0]).toHaveProperty('url');
       }
       
       // Validate _meta structure
@@ -147,7 +156,11 @@ describe('GitHub Pages Integration Tests', () => {
       expect(server.name).toContain('github-mcp-server');
       expect(server).toHaveProperty('version');
       expect(server).toHaveProperty('description');
-      expect(server).toHaveProperty('packages');
+      
+      // Server must have either packages or remotes (or both)
+      const hasPackages = server.packages && Array.isArray(server.packages);
+      const hasRemotes = server.remotes && Array.isArray(server.remotes);
+      expect(hasPackages || hasRemotes).toBe(true);
       
       const meta = response.body._meta['io.modelcontextprotocol.registry/official'];
       expect(meta.isLatest).toBe(true);
@@ -167,7 +180,11 @@ describe('GitHub Pages Integration Tests', () => {
       expect(server.name).toContain('github-mcp-server');
       expect(server.version).toBe('1.0.0');
       expect(server).toHaveProperty('description');
-      expect(server).toHaveProperty('packages');
+      
+      // Server must have either packages or remotes (or both)
+      const hasPackages = server.packages && Array.isArray(server.packages);
+      const hasRemotes = server.remotes && Array.isArray(server.remotes);
+      expect(hasPackages || hasRemotes).toBe(true);
     });
   });
 });
