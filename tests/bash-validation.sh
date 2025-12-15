@@ -218,35 +218,14 @@ test_list_servers() {
     fi
     
     # Check for CORS headers (required for VS Code MCP registry support)
+    # Note: Access-Control-Allow-Origin should be present on all responses
+    # Access-Control-Allow-Methods and Access-Control-Allow-Headers are typically
+    # only present on OPTIONS preflight responses (see test_cors_preflight)
     print_test "Checking CORS: Access-Control-Allow-Origin"
     if check_header "$headers_file" "access-control-allow-origin" ".*\*.*"; then
         print_success "Access-Control-Allow-Origin: * present"
     else
         print_failure "Access-Control-Allow-Origin: * missing (required for VS Code)"
-    fi
-    
-    print_test "Checking CORS: Access-Control-Allow-Methods"
-    if check_header "$headers_file" "access-control-allow-methods" ""; then
-        local methods=$(grep -i "^access-control-allow-methods:" "$headers_file" | cut -d':' -f2- | tr -d '\r\n' | sed 's/^ *//')
-        if [[ "$methods" =~ GET ]] && [[ "$methods" =~ OPTIONS ]]; then
-            print_success "Access-Control-Allow-Methods includes GET and OPTIONS"
-        else
-            print_failure "Access-Control-Allow-Methods missing GET or OPTIONS (got: $methods)"
-        fi
-    else
-        print_failure "Access-Control-Allow-Methods header missing (required for VS Code)"
-    fi
-    
-    print_test "Checking CORS: Access-Control-Allow-Headers"
-    if check_header "$headers_file" "access-control-allow-headers" ""; then
-        local headers=$(grep -i "^access-control-allow-headers:" "$headers_file" | cut -d':' -f2- | tr -d '\r\n' | sed 's/^ *//')
-        if [[ "$headers" =~ [Aa]uthorization ]] && [[ "$headers" =~ [Cc]ontent-[Tt]ype ]]; then
-            print_success "Access-Control-Allow-Headers includes Authorization and Content-Type"
-        else
-            print_failure "Access-Control-Allow-Headers missing required headers (got: $headers)"
-        fi
-    else
-        print_failure "Access-Control-Allow-Headers header missing (required for VS Code)"
     fi
 }
 
