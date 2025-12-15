@@ -590,7 +590,7 @@ test_cors_preflight() {
     fi
     
     # Test OPTIONS on specific version endpoint
-    print_test "OPTIONS request to /v0.1/servers (latest version endpoint)"
+    print_test "OPTIONS request to /v0.1/servers/{serverName}/versions/latest"
     local list_response=$(http_request "GET" "$REGISTRY_URL/v0.1/servers?limit=1")
     local list_body=$(get_body_file "$list_response")
     

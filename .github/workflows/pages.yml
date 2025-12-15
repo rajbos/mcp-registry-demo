@@ -98,7 +98,6 @@ jobs:
         env:
           PAGES_URL: ${{ needs.deploy.outputs.page_url }}
         run: |
-          chmod +x tests/bash-validation.sh
           # Remove trailing slash if present
           BASE_URL="${PAGES_URL%/}"
           ./tests/bash-validation.sh "$BASE_URL"
