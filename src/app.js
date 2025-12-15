@@ -5,6 +5,26 @@ const serversData = require('./data/servers.json');
 
 const app = express();
 
+// Helper function to decode server names from URL-safe format
+function decodeServerName(serverName) {
+  // First try standard URL decoding
+  let decodedName = decodeURIComponent(serverName);
+  
+  // If it looks like our custom encoding (no slashes but has dashes), convert back
+  if (!decodedName.includes('/') && decodedName.includes('-')) {
+    // Try to find a matching server by checking all possibilities
+    const matchingServer = serversData.servers.find(s => {
+      const encoded = s.server.name.replace(/[\/.]/g, '-');
+      return encoded === serverName;
+    });
+    if (matchingServer) {
+      decodedName = matchingServer.server.name;
+    }
+  }
+  
+  return decodedName;
+}
+
 // CORS configuration as per MCP registry requirements
 app.use(cors({
   origin: '*',
@@ -78,9 +98,7 @@ app.get('/v0.1/servers', (req, res) => {
 // GET /v0.1/servers/:serverName/versions/latest - Get latest version of a server
 app.get('/v0.1/servers/:serverName/versions/latest', (req, res) => {
   const { serverName } = req.params;
-  
-  // Decode URL-encoded server name
-  const decodedName = decodeURIComponent(serverName);
+  const decodedName = decodeServerName(serverName);
   
   // Find server by name - match exact name or if name contains the search string
   const serverResponse = serversData.servers.find(s => 
@@ -116,9 +134,7 @@ app.get('/v0.1/servers/:serverName/versions/latest', (req, res) => {
 // GET /v0.1/servers/:serverName/versions - List all versions of a server
 app.get('/v0.1/servers/:serverName/versions', (req, res) => {
   const { serverName } = req.params;
-  
-  // Decode URL-encoded server name
-  const decodedName = decodeURIComponent(serverName);
+  const decodedName = decodeServerName(serverName);
   
   // Find all versions of this server
   const versions = serversData.servers.filter(s => 
@@ -145,9 +161,7 @@ app.get('/v0.1/servers/:serverName/versions', (req, res) => {
 // GET /v0.1/servers/:serverName/versions/:version - Get specific version of a server
 app.get('/v0.1/servers/:serverName/versions/:version', (req, res) => {
   const { serverName, version } = req.params;
-  
-  // Decode URL-encoded parameters
-  const decodedName = decodeURIComponent(serverName);
+  const decodedName = decodeServerName(serverName);
   const decodedVersion = decodeURIComponent(version);
   
   // Handle 'latest' version by redirecting to the latest endpoint

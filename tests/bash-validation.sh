@@ -290,7 +290,8 @@ test_get_server_versions() {
     fi
     
     local server_name=$(jq -r '.servers[0].server.name' "$list_body")
-    local server_name_encoded=$(echo -n "$server_name" | jq -sRr @uri)
+    # Encode server name by replacing / and . with -
+    local server_name_encoded=$(echo -n "$server_name" | sed 's/[\/.]/-/g')
     
     print_test "Request to GET /v0.1/servers/$server_name/versions"
     local response=$(http_request "GET" "$REGISTRY_URL/v0.1/servers/$server_name_encoded/versions")
@@ -346,7 +347,8 @@ test_get_specific_version() {
     
     local server_name=$(jq -r '.servers[0].server.name' "$list_body")
     local server_version=$(jq -r '.servers[0].server.version' "$list_body")
-    local server_name_encoded=$(echo -n "$server_name" | jq -sRr @uri)
+    # Encode server name by replacing / and . with -
+    local server_name_encoded=$(echo -n "$server_name" | sed 's/[\\/.]/-/g')
     local server_version_encoded=$(echo -n "$server_version" | jq -sRr @uri)
     
     print_test "Request to GET /v0.1/servers/$server_name/versions/$server_version"
@@ -416,7 +418,8 @@ test_get_latest_version() {
     fi
     
     local server_name=$(jq -r '.servers[0].server.name' "$list_body")
-    local server_name_encoded=$(echo -n "$server_name" | jq -sRr @uri)
+    # Encode server name by replacing / and . with -
+    local server_name_encoded=$(echo -n "$server_name" | sed 's/[\/.]/-/g')
     
     print_test "Request to GET /v0.1/servers/$server_name/versions/latest"
     local response=$(http_request "GET" "$REGISTRY_URL/v0.1/servers/$server_name_encoded/versions/latest")

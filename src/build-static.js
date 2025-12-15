@@ -33,16 +33,17 @@ writeJsonFile('v0.1/servers/index.json', serversResponse);
 // Generate individual server endpoints with spec-compliant format
 serversData.servers.forEach(serverResponse => {
   const serverName = serverResponse.server.name;
-  const simpleName = serverName.split('/').pop(); // Extract simple name for path
+  // Use full name with URL encoding for directory structure (replace / with -)
+  const encodedName = serverName.replace(/\//g, '-').replace(/\./g, '-');
   const version = serverResponse.server.version;
   
   // Generate /v0.1/servers/:serverName/versions/latest
   if (serverResponse._meta?.['io.modelcontextprotocol.registry/official']?.isLatest) {
-    writeJsonFile(`v0.1/servers/${simpleName}/versions/latest/index.json`, serverResponse);
+    writeJsonFile(`v0.1/servers/${encodedName}/versions/latest/index.json`, serverResponse);
   }
   
   // Generate /v0.1/servers/:serverName/versions/:version
-  writeJsonFile(`v0.1/servers/${simpleName}/versions/${version}/index.json`, serverResponse);
+  writeJsonFile(`v0.1/servers/${encodedName}/versions/${version}/index.json`, serverResponse);
   
   // Generate /v0.1/servers/:serverName/versions endpoint (list of all versions)
   const serverVersions = serversData.servers
@@ -53,7 +54,7 @@ serversData.servers.forEach(serverResponse => {
       count: serverVersions.length
     }
   };
-  writeJsonFile(`v0.1/servers/${simpleName}/versions/index.json`, versionsResponse);
+  writeJsonFile(`v0.1/servers/${encodedName}/versions/index.json`, versionsResponse);
 });
 
 // Generate root API info
