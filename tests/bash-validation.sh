@@ -217,12 +217,36 @@ test_list_servers() {
         print_info "No servers in response (empty registry)"
     fi
     
-    # Check for CORS headers
-    print_test "Checking for CORS headers"
-    if check_header "$headers_file" "access-control-allow-origin" ""; then
-        print_success "CORS header present"
+    # Check for CORS headers (required for VS Code MCP registry support)
+    print_test "Checking CORS: Access-Control-Allow-Origin"
+    if check_header "$headers_file" "access-control-allow-origin" ".*\*.*"; then
+        print_success "Access-Control-Allow-Origin: * present"
     else
-        print_info "CORS header not present (optional)"
+        print_failure "Access-Control-Allow-Origin: * missing (required for VS Code)"
+    fi
+    
+    print_test "Checking CORS: Access-Control-Allow-Methods"
+    if check_header "$headers_file" "access-control-allow-methods" ""; then
+        local methods=$(grep -i "^access-control-allow-methods:" "$headers_file" | cut -d':' -f2- | tr -d '\r\n' | sed 's/^ *//')
+        if [[ "$methods" =~ GET ]] && [[ "$methods" =~ OPTIONS ]]; then
+            print_success "Access-Control-Allow-Methods includes GET and OPTIONS"
+        else
+            print_failure "Access-Control-Allow-Methods missing GET or OPTIONS (got: $methods)"
+        fi
+    else
+        print_failure "Access-Control-Allow-Methods header missing (required for VS Code)"
+    fi
+    
+    print_test "Checking CORS: Access-Control-Allow-Headers"
+    if check_header "$headers_file" "access-control-allow-headers" ""; then
+        local headers=$(grep -i "^access-control-allow-headers:" "$headers_file" | cut -d':' -f2- | tr -d '\r\n' | sed 's/^ *//')
+        if [[ "$headers" =~ [Aa]uthorization ]] && [[ "$headers" =~ [Cc]ontent-[Tt]ype ]]; then
+            print_success "Access-Control-Allow-Headers includes Authorization and Content-Type"
+        else
+            print_failure "Access-Control-Allow-Headers missing required headers (got: $headers)"
+        fi
+    else
+        print_failure "Access-Control-Allow-Headers header missing (required for VS Code)"
     fi
 }
 
@@ -546,6 +570,75 @@ test_updated_since_filter() {
     fi
 }
 
+# Test 9: OPTIONS requests for CORS preflight
+test_cors_preflight() {
+    print_header "Test 9: CORS Preflight (OPTIONS requests)"
+    
+    print_test "OPTIONS request to /v0.1/servers"
+    local response=$(http_request "OPTIONS" "$REGISTRY_URL/v0.1/servers")
+    local http_code=$(get_http_code "$response")
+    local headers_file=$(get_headers_file "$response")
+    
+    if [ "$http_code" = "200" ] || [ "$http_code" = "204" ]; then
+        print_success "OPTIONS request accepted (HTTP $http_code)"
+    else
+        print_failure "OPTIONS request failed with HTTP $http_code (expected 200 or 204)"
+    fi
+    
+    print_test "Checking CORS headers in OPTIONS response"
+    if check_header "$headers_file" "access-control-allow-origin" ".*\*.*"; then
+        print_success "OPTIONS: Access-Control-Allow-Origin: * present"
+    else
+        print_failure "OPTIONS: Access-Control-Allow-Origin: * missing"
+    fi
+    
+    if check_header "$headers_file" "access-control-allow-methods" ""; then
+        local methods=$(grep -i "^access-control-allow-methods:" "$headers_file" | cut -d':' -f2- | tr -d '\r\n' | sed 's/^ *//')
+        if [[ "$methods" =~ GET ]] && [[ "$methods" =~ OPTIONS ]]; then
+            print_success "OPTIONS: Access-Control-Allow-Methods includes GET and OPTIONS"
+        else
+            print_failure "OPTIONS: Access-Control-Allow-Methods incomplete (got: $methods)"
+        fi
+    else
+        print_failure "OPTIONS: Access-Control-Allow-Methods header missing"
+    fi
+    
+    if check_header "$headers_file" "access-control-allow-headers" ""; then
+        local headers=$(grep -i "^access-control-allow-headers:" "$headers_file" | cut -d':' -f2- | tr -d '\r\n' | sed 's/^ *//')
+        print_success "OPTIONS: Access-Control-Allow-Headers: $headers"
+    else
+        print_failure "OPTIONS: Access-Control-Allow-Headers header missing"
+    fi
+    
+    # Test OPTIONS on specific version endpoint
+    print_test "OPTIONS request to /v0.1/servers (latest version endpoint)"
+    local list_response=$(http_request "GET" "$REGISTRY_URL/v0.1/servers?limit=1")
+    local list_body=$(get_body_file "$list_response")
+    
+    if jq -e '.servers[0].server.name' "$list_body" > /dev/null 2>&1; then
+        local server_name=$(jq -r '.servers[0].server.name' "$list_body")
+        local server_name_encoded=$(echo -n "$server_name" | sed 's/[\/.]/-/g')
+        
+        local version_response=$(http_request "OPTIONS" "$REGISTRY_URL/v0.1/servers/$server_name_encoded/versions/latest")
+        local version_http_code=$(get_http_code "$version_response")
+        local version_headers=$(get_headers_file "$version_response")
+        
+        if [ "$version_http_code" = "200" ] || [ "$version_http_code" = "204" ]; then
+            print_success "OPTIONS on version endpoint accepted (HTTP $version_http_code)"
+            
+            if check_header "$version_headers" "access-control-allow-origin" ".*\*.*"; then
+                print_success "OPTIONS on version endpoint: CORS headers present"
+            else
+                print_failure "OPTIONS on version endpoint: CORS headers missing"
+            fi
+        else
+            print_failure "OPTIONS on version endpoint failed (HTTP $version_http_code)"
+        fi
+    else
+        print_info "Skipping version endpoint OPTIONS test (no servers available)"
+    fi
+}
+
 # Main execution
 main() {
     echo -e "${BLUE}"
@@ -575,6 +668,7 @@ main() {
     test_error_handling
     test_additional_headers
     test_updated_since_filter
+    test_cors_preflight
     
     # Summary
     print_header "Test Summary"
