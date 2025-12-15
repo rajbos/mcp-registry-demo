@@ -6,14 +6,10 @@
         "description": "Tools and resources for GitHub repos, issues, PRs, and Actions.",
         "title": "GitHub MCP Server",
         "version": "1.0.0",
-        "packages": [
+        "remotes": [
           {
-            "registryType": "api",
-            "identifier": "github-mcp-server",
-            "transport": {
-              "type": "streamable-http",
-              "url": "https://api.githubcopilot.com/mcp/"
-            }
+            "type": "streamable-http",
+            "url": "https://api.githubcopilot.com/mcp/"
           }
         ]
       },
@@ -32,14 +28,10 @@
         "description": "Microsoft Learn MCP server providing access to documentation and learning resources.",
         "title": "MS Learn MCP Server",
         "version": "1.0.0",
-        "packages": [
+        "remotes": [
           {
-            "registryType": "api",
-            "identifier": "ms-learn-mcp-server",
-            "transport": {
-              "type": "streamable-http",
-              "url": "https://learn.microsoft.com/api/mcp"
-            }
+            "type": "streamable-http",
+            "url": "https://learn.microsoft.com/api/mcp"
           }
         ]
       },
