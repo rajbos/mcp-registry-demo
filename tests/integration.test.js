@@ -99,8 +99,7 @@ describe('GitHub Pages Integration Tests', () => {
       expect(response.body).toHaveProperty('metadata');
       expect(response.body).toHaveProperty('servers');
       expect(Array.isArray(response.body.servers)).toBe(true);
-      expect(response.body.metadata).toHaveProperty('total');
-      expect(response.body.metadata).toHaveProperty('limit');
+      expect(response.body.metadata).toHaveProperty('count');
     });
 
     it('should validate server object structure', async () => {
@@ -108,27 +107,30 @@ describe('GitHub Pages Integration Tests', () => {
       
       expect(response.body.servers.length).toBeGreaterThan(0);
       
-      const server = response.body.servers[0];
-      expect(server).toHaveProperty('id');
+      const serverResponse = response.body.servers[0];
+      // v0.1 spec: ServerResponse format with server wrapper and _meta
+      expect(serverResponse).toHaveProperty('server');
+      expect(serverResponse).toHaveProperty('_meta');
+      
+      const server = serverResponse.server;
       expect(server).toHaveProperty('name');
       expect(server).toHaveProperty('description');
       expect(server).toHaveProperty('version');
-      expect(server).toHaveProperty('updated_at');
-      expect(server).toHaveProperty('owner');
       expect(server).toHaveProperty('packages');
-      expect(server).toHaveProperty('runtime');
-      expect(server).toHaveProperty('isLatest');
       
       // Validate packages array
       expect(Array.isArray(server.packages)).toBe(true);
       if (server.packages.length > 0) {
-        expect(server.packages[0]).toHaveProperty('type');
-        expect(server.packages[0]).toHaveProperty('url');
+        expect(server.packages[0]).toHaveProperty('registryType');
+        expect(server.packages[0]).toHaveProperty('identifier');
       }
       
-      // Validate runtime object
-      expect(server.runtime).toHaveProperty('type');
-      expect(server.runtime).toHaveProperty('entry');
+      // Validate _meta structure
+      const meta = serverResponse._meta['io.modelcontextprotocol.registry/official'];
+      expect(meta).toBeDefined();
+      expect(meta).toHaveProperty('status');
+      expect(meta).toHaveProperty('publishedAt');
+      expect(meta).toHaveProperty('isLatest');
     });
   });
 
@@ -137,14 +139,18 @@ describe('GitHub Pages Integration Tests', () => {
       const response = await fetchJsonWithRetry(`${BASE_URL}/v0.1/servers/github-mcp-server/versions/latest/index.json`);
       
       expect(response.statusCode).toBe(200);
-      expect(response.body).toHaveProperty('id');
-      expect(response.body).toHaveProperty('name', 'github-mcp-server');
-      expect(response.body).toHaveProperty('version');
-      expect(response.body).toHaveProperty('isLatest', true);
-      expect(response.body).toHaveProperty('description');
-      expect(response.body).toHaveProperty('owner');
-      expect(response.body).toHaveProperty('packages');
-      expect(response.body).toHaveProperty('runtime');
+      // v0.1 spec: ServerResponse format
+      expect(response.body).toHaveProperty('server');
+      expect(response.body).toHaveProperty('_meta');
+      
+      const server = response.body.server;
+      expect(server.name).toContain('github-mcp-server');
+      expect(server).toHaveProperty('version');
+      expect(server).toHaveProperty('description');
+      expect(server).toHaveProperty('packages');
+      
+      const meta = response.body._meta['io.modelcontextprotocol.registry/official'];
+      expect(meta.isLatest).toBe(true);
     });
   });
 
@@ -153,13 +159,15 @@ describe('GitHub Pages Integration Tests', () => {
       const response = await fetchJsonWithRetry(`${BASE_URL}/v0.1/servers/github-mcp-server/versions/1.0.0/index.json`);
       
       expect(response.statusCode).toBe(200);
-      expect(response.body).toHaveProperty('id');
-      expect(response.body).toHaveProperty('name', 'github-mcp-server');
-      expect(response.body).toHaveProperty('version', '1.0.0');
-      expect(response.body).toHaveProperty('description');
-      expect(response.body).toHaveProperty('owner');
-      expect(response.body).toHaveProperty('packages');
-      expect(response.body).toHaveProperty('runtime');
+      // v0.1 spec: ServerResponse format
+      expect(response.body).toHaveProperty('server');
+      expect(response.body).toHaveProperty('_meta');
+      
+      const server = response.body.server;
+      expect(server.name).toContain('github-mcp-server');
+      expect(server.version).toBe('1.0.0');
+      expect(server).toHaveProperty('description');
+      expect(server).toHaveProperty('packages');
     });
   });
 });
