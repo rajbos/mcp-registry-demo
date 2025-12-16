@@ -96,3 +96,14 @@ jobs:
         env:
           PAGES_URL: ${{ needs.deploy.outputs.page_url }}
         run: npx jest --config=jest.integration.config.js
+      
+      - name: Install jq for bash validation
+        run: sudo apt-get update && sudo apt-get install -y jq
+      
+      - name: Run bash validation script
+        env:
+          PAGES_URL: ${{ needs.deploy.outputs.page_url }}
+        run: |
+          # Remove trailing slash if present
+          BASE_URL="${PAGES_URL%/}"
+          ./tests/bash-validation.sh "$BASE_URL"
