@@ -43,6 +43,37 @@
           "isLatest": true
         }
       }
+    },
+    {
+      "server": {
+        "name": "playwright/mcp-server",
+        "description": "MCP server for browser automation using Playwright with stdio transport.",
+        "title": "Playwright MCP Server",
+        "version": "0.2.0",
+        "repository": {
+          "url": "https://github.com/microsoft/playwright",
+          "source": "github"
+        },
+        "packages": [
+          {
+            "registryType": "npm",
+            "registryBaseUrl": "https://registry.npmjs.org",
+            "identifier": "@playwright/mcp",
+            "version": "0.2.0",
+            "transport": {
+              "type": "stdio"
+            }
+          }
+        ]
+      },
+      "_meta": {
+        "io.modelcontextprotocol.registry/official": {
+          "status": "active",
+          "publishedAt": "2025-12-20T12:00:00.000000Z",
+          "updatedAt": "2025-12-20T12:00:00.000000Z",
+          "isLatest": true
+        }
+      }
     }
   ]
 }

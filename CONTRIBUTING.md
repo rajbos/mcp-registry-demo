@@ -8,51 +8,106 @@ To add a new server to the registry, follow these steps:
 
 ### 1. Edit the Server Data File
 
-Open `src/data/servers.json` and add your server entry to the `servers` array. Each server must follow this schema:
+Open `src/data/servers.json` and add your server entry to the `servers` array. Each server must follow the MCP Registry v0.1 schema.
+
+#### Example 1: Streamable HTTP Server
+
+For servers that use streamable-http transport (hosted API servers):
 
 ```json
 {
-  "id": "io.github.username/server-name",
-  "name": "server-name",
-  "description": "A brief description of what this server does",
-  "version": "1.0.0",
-  "updated_at": "2025-12-11T00:00:00.000Z",
-  "owner": "io.github.username",
-  "packages": [
-    {
-      "type": "npm",
-      "url": "https://www.npmjs.com/package/@username/server-name"
-    }
-  ],
-  "runtime": {
-    "type": "node",
-    "entry": "index.js"
+  "server": {
+    "name": "io.github.username/server-name",
+    "description": "Brief description (max 100 characters)",
+    "title": "Server Display Name",
+    "version": "1.0.0",
+    "remotes": [
+      {
+        "type": "streamable-http",
+        "url": "https://api.example.com/mcp/"
+      }
+    ]
   },
-  "tags": ["tag1", "tag2", "tag3"],
-  "capabilities": ["capability1", "capability2"],
-  "status": "active",
-  "isLatest": true
+  "_meta": {
+    "io.modelcontextprotocol.registry/official": {
+      "status": "active",
+      "publishedAt": "2025-12-11T00:00:00.000000Z",
+      "updatedAt": "2025-12-11T00:00:00.000000Z",
+      "isLatest": true
+    }
+  }
+}
+```
+
+#### Example 2: Stdio (Local) Server
+
+For servers that run locally via stdio transport (npm packages, Python packages, etc.):
+
+```json
+{
+  "server": {
+    "name": "playwright/mcp-server",
+    "description": "MCP server for browser automation using Playwright with stdio transport.",
+    "title": "Playwright MCP Server",
+    "version": "0.2.0",
+    "repository": {
+      "url": "https://github.com/microsoft/playwright",
+      "source": "github"
+    },
+    "packages": [
+      {
+        "registryType": "npm",
+        "registryBaseUrl": "https://registry.npmjs.org",
+        "identifier": "@playwright/mcp",
+        "version": "0.2.0",
+        "transport": {
+          "type": "stdio"
+        }
+      }
+    ]
+  },
+  "_meta": {
+    "io.modelcontextprotocol.registry/official": {
+      "status": "active",
+      "publishedAt": "2025-12-20T12:00:00.000000Z",
+      "updatedAt": "2025-12-20T12:00:00.000000Z",
+      "isLatest": true
+    }
+  }
 }
 ```
 
 ### 2. Field Descriptions
 
-- **id** (required): Unique identifier in format `io.github.username/server-name`
-- **name** (required): Server name (should match the server-name in the id)
-- **description** (required): Brief description of the server's functionality
+#### Server Object (required):
+- **name** (required): Unique identifier in format `namespace/server-name` (e.g., `io.github.username/server-name`)
+- **description** (required): Brief description of the server's functionality (max 100 characters)
+- **title** (required): Display name for the server
 - **version** (required): Semantic version (e.g., "1.0.0")
-- **updated_at** (required): ISO 8601 timestamp of last update
-- **owner** (required): Namespace owner (e.g., "io.github.username")
-- **packages** (required): Array of package distribution information
-  - **type**: Distribution type ("npm", "pypi", "docker", "api", "github")
-  - **url**: URL to the package
-- **runtime** (required): Runtime information
-  - **type**: Runtime type ("node", "python", "docker", "api")
-  - **entry**: Entry point file or URL
-- **tags** (optional): Array of searchable tags
-- **capabilities** (optional): Array of server capabilities
-- **status** (optional): Status of the server ("active", "deprecated", "beta")
-- **isLatest** (required): Boolean indicating if this is the latest version
+- **repository** (optional): Repository information
+  - **url**: Git repository URL
+  - **source**: Source type (e.g., "github")
+
+#### For Streamable HTTP Servers:
+- **remotes** (required): Array of remote endpoints
+  - **type**: Must be "streamable-http"
+  - **url**: API endpoint URL
+
+#### For Stdio (Local) Servers:
+- **packages** (required): Array of package information
+  - **registryType**: Package registry type ("npm", "pypi", "oci", etc.)
+  - **registryBaseUrl**: Base URL of the package registry
+  - **identifier**: Package identifier (e.g., "@playwright/mcp")
+  - **version**: Package version
+  - **transport**: Transport configuration
+    - **type**: Must be "stdio" for local execution
+
+#### Metadata (_meta):
+- **io.modelcontextprotocol.registry/official**: Registry metadata
+  - **status**: Status of the server ("active", "deprecated", "beta")
+  - **publishedAt**: ISO 8601 timestamp of first publication
+  - **updatedAt**: ISO 8601 timestamp of last update
+  - **isLatest**: Boolean indicating if this is the latest version
 
 ### 3. Multiple Versions
 
@@ -67,24 +122,54 @@ Example:
 {
   "servers": [
     {
-      "id": "io.github.username/server-name",
-      "name": "server-name",
-      "version": "2.0.0",
-      "isLatest": true,
-      ...
+      "server": {
+        "name": "playwright/mcp-server",
+        "version": "0.2.0",
+        ...
+      },
+      "_meta": {
+        "io.modelcontextprotocol.registry/official": {
+          "isLatest": true,
+          ...
+        }
+      }
     },
     {
-      "id": "io.github.username/server-name",
-      "name": "server-name",
-      "version": "1.0.0",
-      "isLatest": false,
-      ...
+      "server": {
+        "name": "playwright/mcp-server",
+        "version": "0.1.0",
+        ...
+      },
+      "_meta": {
+        "io.modelcontextprotocol.registry/official": {
+          "isLatest": false,
+          ...
+        }
+      }
     }
   ]
 }
 ```
 
-### 4. Test Your Changes
+### 4. Client Configuration
+
+Once your stdio server is added to the registry, clients can configure it in their MCP client configuration (e.g., `servers.json`):
+
+```json
+{
+  "mcpServers": {
+    "playwright": {
+      "type": "local",
+      "command": "npx",
+      "args": ["@playwright/mcp@latest"]
+    }
+  }
+}
+```
+
+For detailed client-side configuration, see the [GitHub Copilot MCP documentation](https://docs.github.com/en/copilot/how-tos/administer-copilot/manage-mcp-usage/configure-mcp-registry).
+
+### 5. Test Your Changes
 
 After adding your server, run the tests to ensure everything works:
 
@@ -98,7 +183,7 @@ All tests should pass. The tests verify:
 - JSON schema validation
 - Error handling
 
-### 5. Build and Preview
+### 6. Build and Preview
 
 Build the static site to preview your changes:
 
@@ -116,7 +201,7 @@ Then visit:
 - `http://localhost:3000/v0.1/servers` - See all servers
 - `http://localhost:3000/v0.1/servers/your-server-name/versions/latest` - See your server
 
-### 6. Submit Your Changes
+### 7. Submit Your Changes
 
 1. Fork the repository
 2. Create a new branch: `git checkout -b add-my-server`
