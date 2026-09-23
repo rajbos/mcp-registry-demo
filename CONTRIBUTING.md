@@ -167,6 +167,31 @@ Once your stdio server is added to the registry, clients can configure it in the
 }
 ```
 
+#### Example: Docker-based stdio server (SonarQube)
+
+Servers distributed as a container image use `"registryType": "oci"` in the registry (see the `io.github.SonarSource/sonarqube-mcp-server` entry in `src/data/servers.json`). The client starts the container locally and talks to it over stdio. In VS Code (`.vscode/mcp.json`):
+
+```json
+{
+  "servers": {
+    "io.github.SonarSource/sonarqube-mcp-server": {
+      "type": "stdio",
+      "command": "docker",
+      "args": ["run", "--init", "--pull=always", "-i", "--rm", "-e", "SONARQUBE_TOKEN", "-e", "SONARQUBE_URL", "sonarsource/sonarqube-mcp"],
+      "env": {
+        "SONARQUBE_TOKEN": "${input:sonarqube_token}",
+        "SONARQUBE_URL": "https://sonarqube.example.com"
+      }
+    }
+  },
+  "inputs": [
+    { "id": "sonarqube_token", "type": "promptString", "description": "SonarQube user token", "password": true }
+  ]
+}
+```
+
+When your organization enforces the **Registry only** MCP policy, local (stdio) servers are enforced too: the server name/ID used by the client must exactly match the `name` in the registry, otherwise the client blocks the server. Installing the server from the registry (for example via the MCP gallery in VS Code) sets the matching ID for you.
+
 For detailed client-side configuration, see the [GitHub Copilot MCP documentation](https://docs.github.com/en/copilot/how-tos/administer-copilot/manage-mcp-usage/configure-mcp-registry).
 
 ### 5. Test Your Changes
